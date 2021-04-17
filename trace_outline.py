@@ -56,65 +56,6 @@ def find_clockwise_nearest(vector_a,vector_b_arr,id_list):
     next_pt_id = int(id_list[clockwise_nearest])
     return next_pt_id
 
-def build_search_circle(verts,faces,length_threshold = 30):
-    # length_threshold can be adjust according to mesh size
-    edges_list,adj = get_edges(verts,faces)
-    edge_arr = np.asarray(edges_list)
-    out_points = []
-    connect_id = []
-    tree = cKDTree(verts)
-    length = np.max(verts)-np.min(verts)
-    with_in_circle = tree.query_ball_point(verts,length/length_threshold)
-    search_area_list = []
-    for idx in range(verts.shape[0]):
-        search_area_list.append(np.unique( np.vstack(( edge_arr[with_in_circle[idx]] )),axis=0 ))
-    return search_area_list
-
-def tracing_outline(verts,faces,search_area_list):
-    """
-    args:
-    1.N*2 verts
-    2.M*2 edges
-    Return:
-    outline points coordinates
-    """
-    start_id = np.argmin(verts[:,0])
-    center_pt = verts[start_id]
-    pre_pt = center_pt.copy()
-    pre_pt[0] = pre_pt[0] - 1 #start from left
-    next_id = start_id
-    break_c = verts.shape[0] 
-    i = 0
-    out_id = []
-    out_id.append(next_id)
-    while True and i < break_c:
-        i += 1
-        if len(connect_id) == 0:
-            connect_id = adj[next_id]
-        vector_a = pre_pt - center_pt
-        vector_b_arr = verts[connect_id] - center_pt
-        next_id = find_clockwise_nearest(vector_a,vector_b_arr,connect_id)
-        if next_id == start_id:
-            break
-        pre_pt = center_pt
-        center_pt = verts[next_id]
-        search_area = search_area_list[next_id]
-        arr_q = verts[search_area[:,0]]
-        arr_r = verts[search_area[:,1]] - arr_q
-        inters,inter_edge_id = find_inters(center_pt,pre_pt-center_pt,arr_q,arr_r)
-        if inters is not None:
-            nearest = np.argmin(NORM(inters - pre_pt,axis=1))
-            center_pt = inters[nearest]
-            connect_id = np.ndarray.tolist(search_area[inter_edge_id[nearest]])
-            connect_id.append(next_id)
-            inters = None  
-        else:
-            connect_id = []     
-            inters = None
-            out_id.append(next_id)
-        out_points.append(center_pt)    
-    return out_id
-
 def find_inters(pv,rv,qv,sv):
     # find intersections https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
     # p is one vector
@@ -151,6 +92,7 @@ def tracing_outline_robust(verts,faces):
     i = 0
     edges_list,adj = get_edges(verts,faces)
     edge_arr = np.vstack((np.asarray(edges_list)))
+    edge_arr = edge_arr..astype('int')
     out_points = []
     connect_id = []
     out_id = []
@@ -236,7 +178,7 @@ import trimesh # for reading mesh only
 import pdb
 # pdb.set_trace()
 
-mesh_path = '/home/tingting/Desktop/netvirta/fullbody/fullbody.sg/demo.ply'
+mesh_path = 'bunny.ply'
 mesh = trimesh.load_mesh( mesh_path, process=False)
 v,f = mesh.vertices,mesh.faces
 points,ids = tracing_outline_robust(v[:,:2],f) # not doing any projection,just simply take the verts's x and y .
