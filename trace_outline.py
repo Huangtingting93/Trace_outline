@@ -183,7 +183,7 @@ def tracing_outline_robust(verts, faces):
     break_c = verts.shape[0]
     i = 0
     edges_list, adj = get_edges_adj(verts, faces)
-    edge_arr = np.vstack((np.asarray(edges_list)))
+    edge_arr = np.vstack(edges_list)
     edge_arr = edge_arr.astype('int')
     out_points = []
     connect_id = []
